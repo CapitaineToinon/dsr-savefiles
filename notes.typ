@@ -5,7 +5,7 @@ My journey working on reverse engineering Dark Souls Remastered savefile encrypt
 - How to speedrun souls games on Linux: https://hackmd.io/VaKWRwy8ScKjU_d-107nZw
 - How to use ghidra: https://picoctfsolutions.com/posts/ghidra-reverse-engineering
 - me3: https://me3.help/en/latest/
-- https://github.com/tremwil/dearxan
+- Anti anti debug for DSR: https://github.com/tremwil/dearxan
 
 == Linux
 
