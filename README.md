@@ -28,13 +28,9 @@ The game loads `DINPUT8.dll` from its own directory before the system one, so dr
 
 DSR uses Arxan to detect debuggers and verify code integrity. The [dearxan](https://github.com/tremwil/dearxan) library is used to neuter these checks at runtime before any hooks are installed.
 
-### IAT hook on ReadFile / WriteFile
+### IAT hook on ReadFile
 
-`src/iat.c` patches the Import Address Table entry used by the call site at `DarkSoulsRemastered.exe+D08781` to redirect `ReadFile` through a detour. The detour logs call stacks and buffer contents for `.sl2` reads.
-
-### Disabling encryption without patching code
-
-`src/dll.c` spawns a background thread that polls the game's `SaveLoad2` config struct (at `[base+0x1D053C0]+0xA0`) and clears the encryption flag. Both the read and write paths skip AES when that byte is zero, so no `.text` modifications are needed and code-integrity checks don't fire.
+`src/iat.c` patches the Import Address Table entry used by the call site at `DarkSoulsRemastered.exe+D08781` to redirect `ReadFile` through a detour. On each call the detour attempts to read the AES key (once), and logs the first 8 bytes plus a callstack for any `.sl2` read.
 
 ### AES key extraction
 
@@ -92,6 +88,5 @@ Enable Proton logging by adding `PROTON_LOG=1 %command%` as Steam launch options
 | Header size | 0x2C0 bytes (plaintext) |
 | Slot size | 0x060030 bytes |
 | IGT offset in decrypted block | 0xC |
-| Encryption flag address | `[base+0x1D053C0]+0xA0` |
 | AES key address | `[base+0x1D053C0]+0x90` |
 | ReadFile call site | `base+0xD08781` |
