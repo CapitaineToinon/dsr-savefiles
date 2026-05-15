@@ -16,39 +16,6 @@ bool key_read = false;
 static WINBOOL(WINAPI *OrigReadFile)(HANDLE, LPVOID, DWORD, LPDWORD,
                                      LPOVERLAPPED);
 
-static WINBOOL(WINAPI *OrigWriteFile)(HANDLE hFile, LPCVOID lpBuffer,
-                                      DWORD nNumberOfBytesToWrite,
-                                      LPDWORD lpNumberOfBytesWritten,
-                                      LPOVERLAPPED lpOverlapped);
-
-// Polls until the SaveLoad2 config struct is allocated, then zeros the
-// encryption flag at config+0xa0. Both FUN_1410da100 (read) and FUN_1410da3f0
-// (write) skip AES when that flag is 0. We modify heap data only — no .text
-// patching — so code integrity checks don't fire.
-static DWORD WINAPI disable_encryption_thread(LPVOID param) {
-  uintptr_t base = (uintptr_t)GetModuleHandleA(NULL);
-  uintptr_t *config_ptr = (uintptr_t *)(base + 0x1d053c0);
-
-  for (;;) {
-    Sleep(10);
-    if (!*config_ptr)
-      continue;
-    uint8_t *flag = (uint8_t *)(*config_ptr + 0xa0);
-    if (*flag) {
-      *flag = 0;
-      DEBUG("SL2 encryption flag cleared\n");
-    }
-  }
-  return 0;
-}
-
-static void disable_sl2_encryption(void) {
-  HANDLE t = CreateThread(NULL, 0, disable_encryption_thread, NULL, 0, NULL);
-  if (t)
-    CloseHandle(t);
-  DEBUG("SL2 encryption disabler thread started\n");
-}
-
 void read_key() {
   if (key_read) {
     return;
@@ -107,35 +74,15 @@ static WINBOOL WINAPI detour_ReadFile(HANDLE hFile, LPVOID lpBuffer,
   return result;
 }
 
-static WINBOOL WINAPI detour_WriteFile(HANDLE hFile, LPCVOID lpBuffer,
-                                       DWORD nNumberOfBytesToWrite,
-                                       LPDWORD lpNumberOfBytesWritten,
-                                       LPOVERLAPPED lpOverlapped) {
-
-  WINBOOL result = OrigWriteFile(hFile, lpBuffer, nNumberOfBytesToWrite,
-                                 lpNumberOfBytesWritten, lpOverlapped);
-  if (is_sl2(hFile)) {
-    BYTE *buf = (BYTE *)lpBuffer;
-    DEBUG("sl2 written %lu bytes: %02X %02X %02X %02X %02X %02X %02X %02X\n",
-          *lpNumberOfBytesWritten, buf[0], buf[1], buf[2], buf[3], buf[4],
-          buf[5], buf[6], buf[7]);
-    log_callstack();
-  }
-
-  return result;
-}
-
 static void attach_hooks(void) {
   OrigReadFile = iat_patch((void *)0x140d08781, detour_ReadFile);
-  // OrigWriteFile = iat_patch((void *)0x1409a1b46, detour_WriteFile);
-  disable_sl2_encryption();
 }
 
 BOOL APIENTRY DllMain(HMODULE mod, DWORD reason, LPVOID reserved) {
   switch (reason) {
   case DLL_PROCESS_ATTACH:
     DEBUG("--------- DllMain attach ---------\n");
-    // setup_antidebug();
+    setup_antidebug();
     setup_d8proxy();
     attach_hooks();
     break;
