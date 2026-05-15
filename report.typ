@@ -12,6 +12,12 @@
     short: "Cheat Engine",
     description: "A popular memory scanning and debugging tool used in reverse engineering",
   ),
+  (
+    key: "nsa",
+    short: "NSA",
+    long: "National Security Agency",
+    description: "United States intelligence agency responsible for signals intelligence and cybersecurity. Creator of the Ghidra reverse engineering framework.",
+  ),
 )
 
 #show: make-glossary
@@ -132,7 +138,7 @@ Once this is done and the game has successfully loaded the real DirectInput via 
 
 = Static Analysis with Ghidra
 
-Ghidra is a reverse engineering software written in Java by the NSA and allows the decompilation of executables. This produces pseudo code in C you can easily inspect, functions you can rename and other useful features.
+Ghidra#footnote("https://ghidra-sre.org/") is a reverse engineering software written in Java by the #gls("nsa") and allows the decompilation of executables. This produces pseudo code in C you can easily inspect, functions you can rename and other useful features.
 
 #figure(
   image("images/ghidra.png", width: 75%),
@@ -432,6 +438,8 @@ This highlights a fundamental limitation of client-side encryption: when the app
 [15] CapitaineToinon. _dsr-savefiles — source code for this project_. #link("https://github.com/CapitaineToinon/dsr-savefiles")
 
 [16] LiveSplit. _LiveSplit_. #link("https://livesplit.org/")
+
+[17] NSA / Cybersecurity and Infrastructure Security Agency. _Ghidra_. #link("https://ghidra-sre.org/")
 
 #pagebreak()
 
