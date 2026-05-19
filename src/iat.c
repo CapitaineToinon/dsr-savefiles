@@ -26,17 +26,3 @@ void *iat_patch(void *call_site, void *detour) {
 
   return orig;
 }
-
-void *vtable_patch(void *vtable_addr, int slot, void *detour) {
-  void **vtable = (void **)vtable_addr;
-  void *orig = vtable[slot];
-
-  DEBUG("vtable_patch: [%p][%d] %p -> %p\n", vtable_addr, slot, orig, detour);
-
-  DWORD old;
-  VirtualProtect(&vtable[slot], sizeof(void *), PAGE_READWRITE, &old);
-  vtable[slot] = detour;
-  VirtualProtect(&vtable[slot], sizeof(void *), old, &old);
-
-  return orig;
-}
